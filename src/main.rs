@@ -1,3 +1,5 @@
+use std::process::id;
+
 /// Convenience type for a `Result` which return a generic `Error`
 type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 
@@ -191,6 +193,73 @@ impl ResultCode {
             5 => Self::REFUSED,
             0 | _ => Self::NOERROR,
         }
+    }
+}
+
+#[derive(Debug, Clone)]
+struct DnsHeader {
+    id: u16,                    // 16 bits
+    recursion_desired: bool,    // 1 bit
+    truncated_message: bool,    // 1 bit
+    authoritative_answer: bool, // 1 bit
+    opcode: u8,                 // 4 bits
+    response: bool,             // 1 bit
+    rescode: ResultCode,        // 4 bits
+    checking_disabled: bool,    // 1 bit
+    authed_data: bool,          // 1 bit
+    z: bool,                    // 1 bit
+    recursion_available: bool,  // 1 bit
+    questions: u16,             // 16 bits
+    answers: u16,               // 16 bits
+    authoritative_entries: u16, // 16 bits
+    resource_entries: u16,      // 16 bits
+}
+
+impl DnsHeader {
+    fn new() -> Self {
+        Self {
+            id: 0,
+            recursion_desired: false,
+            truncated_message: false,
+            authoritative_answer: false,
+            opcode: 0,
+            response: false,
+            rescode: ResultCode::NOERROR,
+            checking_disabled: false,
+            authed_data: false,
+            z: false,
+            recursion_available: false,
+            questions: 0,
+            answers: 0,
+            authoritative_entries: 0,
+            resource_entries: 0,
+        }
+    }
+
+    fn read(&mut self, buffer: &mut BytePacketBuffer) -> Result<()> {
+        self.id = buffer.read_u16()?;
+
+        let flags = buffer.read_u16()?;
+        let a = (flags >> 8) as u8;
+        let b = (flags & 0xFF) as u8;
+        self.recursion_desired = (a & (1 << 0)) > 0;
+        self.truncated_message = (a & (1 << 1)) > 0;
+        self.authoritative_answer = (a & (1 << 2)) > 0;
+        self.opcode = (a >> 3) & 0x0F;
+        self.response = (a & (1 << 7)) > 0;
+
+        self.rescode = ResultCode::from_num(b & 0x0F);
+        self.checking_disabled = (b & (1 << 4)) > 0;
+        self.authed_data = (b & (1 << 5)) > 0;
+        self.z = (b & (1 << 6)) > 0;
+        self.recursion_available = (b & (1 << 7)) > 0;
+
+        self.questions = buffer.read_u16()?;
+        self.answers = buffer.read_u16()?;
+        self.authoritative_entries = buffer.read_u16()?;
+        self.resource_entries = buffer.read_u16()?;
+
+        Ok(())
     }
 }
 
