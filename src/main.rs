@@ -328,6 +328,26 @@ impl QueryType {
     }
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
+struct DnsQuestion {
+    name: String,
+    qtype: QueryType,
+}
+
+impl DnsQuestion {
+    fn new(name: String, qtype: QueryType) -> Self {
+        Self { name, qtype }
+    }
+
+    fn read(&mut self, buffer: &mut BytePacketBuffer) -> Result<()> {
+        buffer.read_qname(&mut self.name)?;
+        self.qtype = QueryType::from_num(buffer.read_u16()?); // qtype
+        let _ = buffer.read_u16()?; // class
+
+        Ok(())
+    }
+}
+
 fn main() {
     println!("Hello, world!");
 }
