@@ -308,6 +308,28 @@ impl DnsHeader {
     }
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+enum QueryType {
+    Unknown(u16),
+    A, // 1
+}
+
+impl QueryType {
+    fn to_num(&self) -> u16 {
+        match *self {
+            QueryType::Unknown(x) => x,
+            QueryType::A => 1,
+        }
+    }
+
+    fn from_num(num: u16) -> Self {
+        match num {
+            1 => QueryType::A,
+            _ => QueryType::Unknown(num),
+        }
+    }
+}
+
 fn main() {
     println!("Hello, world!");
 }
