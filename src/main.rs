@@ -1,5 +1,3 @@
-use std::process::id;
-
 /// Convenience type for a `Result` which return a generic `Error`
 type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 
