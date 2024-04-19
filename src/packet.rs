@@ -8,6 +8,12 @@ pub struct BytePacketBuffer {
     pos: usize,
 }
 
+impl Default for BytePacketBuffer {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl BytePacketBuffer {
     const BUF_LEN: usize = 512;
 
@@ -66,7 +72,7 @@ impl BytePacketBuffer {
             return Err("End of buffer".into());
         }
 
-        Ok(&self.buf[start..start + len as usize])
+        Ok(&self.buf[start..start + len])
     }
 
     /// Read two bytes, stepping two steps forward.
@@ -81,7 +87,7 @@ impl BytePacketBuffer {
         let res = ((self.read()? as u32) << 24)
             | ((self.read()? as u32) << 16)
             | ((self.read()? as u32) << 8)
-            | ((self.read()? as u32) << 0);
+            | (self.read()? as u32);
 
         Ok(res)
     }
@@ -174,6 +180,7 @@ impl BytePacketBuffer {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[allow(clippy::upper_case_acronyms)]
 enum ResultCode {
     NOERROR = 0,
     FORMERR = 1,
@@ -191,7 +198,7 @@ impl ResultCode {
             3 => Self::NXDOMAIN,
             4 => Self::NOTIMP,
             5 => Self::REFUSED,
-            0 | _ => Self::NOERROR,
+            _ => Self::NOERROR,
         }
     }
 }
@@ -315,7 +322,7 @@ pub enum QueryType {
 }
 
 impl QueryType {
-    fn to_num(&self) -> u16 {
+    fn as_num(&self) -> u16 {
         match *self {
             QueryType::Unknown(x) => x,
             QueryType::A => 1,
@@ -351,7 +358,6 @@ impl DnsQuestion {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-#[allow(dead_code)]
 pub enum DnsRecord {
     Unknown {
         domain: String,
@@ -394,7 +400,7 @@ impl DnsRecord {
                     ((raw_addr >> 24) & 0xFF) as u8,
                     ((raw_addr >> 16) & 0xFF) as u8,
                     ((raw_addr >> 8) & 0xFF) as u8,
-                    ((raw_addr >> 0) & 0xFF) as u8,
+                    ((raw_addr) & 0xFF) as u8,
                 );
 
                 Self::A { domain, addr, ttl }
@@ -429,6 +435,12 @@ pub struct DnsPacket {
     /// Additional records, that might be useful. For instance, the corresponding A records for NS
     /// records.
     pub resources: Vec<DnsRecord>,
+}
+
+impl Default for DnsPacket {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl DnsPacket {
