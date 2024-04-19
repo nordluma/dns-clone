@@ -407,10 +407,27 @@ impl DnsRecord {
 
 #[derive(Debug, Clone)]
 struct DnsPacket {
+    /// # Header
+    ///
+    /// Information about the query/response.
     header: DnsHeader,
+    /// # Question Section
+    ///
+    /// In practice only a single question indicating the query name (domain) and the record type
+    /// of interest.
     questions: Vec<DnsQuestion>,
+    /// # Answer Section
+    ///
+    /// The relevant records of the request type.
     answers: Vec<DnsRecord>,
+    /// # Authority Section
+    ///
+    /// A list of name servers (NS records), used for resolving queries recursively.
     authoritives: Vec<DnsRecord>,
+    /// # Additional Section
+    ///
+    /// Additional records, that might be useful. For instance, the corresponding A records for NS
+    /// records.
     resources: Vec<DnsRecord>,
 }
 
