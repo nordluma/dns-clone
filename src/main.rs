@@ -405,6 +405,55 @@ impl DnsRecord {
     }
 }
 
+#[derive(Debug, Clone)]
+struct DnsPacket {
+    header: DnsHeader,
+    questions: Vec<DnsQuestion>,
+    answers: Vec<DnsRecord>,
+    authoritives: Vec<DnsRecord>,
+    resources: Vec<DnsRecord>,
+}
+
+impl DnsPacket {
+    fn new() -> Self {
+        Self {
+            header: DnsHeader::new(),
+            questions: Vec::new(),
+            answers: Vec::new(),
+            authoritives: Vec::new(),
+            resources: Vec::new(),
+        }
+    }
+
+    fn from_buffer(buffer: &mut BytePacketBuffer) -> Result<Self> {
+        let mut result = DnsPacket::new();
+        result.header.read(buffer)?;
+
+        for _ in 0..result.header.questions {
+            let mut question = DnsQuestion::new("".to_string(), QueryType::Unknown(0));
+            question.read(buffer)?;
+            result.questions.push(question);
+        }
+
+        for _ in 0..result.header.answers {
+            let rec = DnsRecord::read(buffer)?;
+            result.answers.push(rec);
+        }
+
+        for _ in 0..result.header.authoritative_entries {
+            let rec = DnsRecord::read(buffer)?;
+            result.authoritives.push(rec);
+        }
+
+        for _ in 0..result.header.resource_entries {
+            let rec = DnsRecord::read(buffer)?;
+            result.resources.push(rec);
+        }
+
+        Ok(result)
+    }
+}
+
 fn main() {
     println!("Hello, world!");
 }
