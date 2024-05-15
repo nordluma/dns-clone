@@ -5,7 +5,7 @@ pub type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 
 pub struct BytePacketBuffer {
     pub buf: [u8; 512],
-    pos: usize,
+    pub pos: usize,
 }
 
 impl Default for BytePacketBuffer {
@@ -230,7 +230,7 @@ impl BytePacketBuffer {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[allow(clippy::upper_case_acronyms)]
-enum ResultCode {
+pub enum ResultCode {
     NOERROR = 0,
     FORMERR = 1,
     SERVFAIL = 2,
@@ -258,62 +258,62 @@ pub struct DnsHeader {
     ///
     /// A random identifier is assigned to query packets. Response packets must reply with the same
     /// id. This is needed to differentiate responses due to the stateless nature of `UDP`.
-    id: u16, // 16 bits
+    pub id: u16, // 16 bits
     /// # Recursion Desired
     ///
     /// Set by the sender of the request if the server should attempt to resolve the query
     /// recursively if it doesn't have an answer readily available.
-    recursion_desired: bool, // 1 bit
+    pub recursion_desired: bool, // 1 bit
     /// # Truncated Message
     ///
     /// Set to 1 if the message exceeds 512 bytes. Traditionally a hint that the query can be
     /// reissued using TCP, for which the length limitation doesn't apply.
-    truncated_message: bool, // 1 bit
+    pub truncated_message: bool, // 1 bit
     /// # Authoritative Answer
     ///
     /// Set to 1 if the responding server is authoritative - that is, it "owns" - the domain
     /// queried.
-    authoritative_answer: bool, // 1 bit
+    pub authoritative_answer: bool, // 1 bit
     /// # Operation Code
     ///
     /// Typically always 0, see [RFC1035](https://datatracker.ietf.org/doc/html/rfc1035) for details.
-    opcode: u8, // 4 bits
+    pub opcode: u8, // 4 bits
     /// # Query Response
     ///
     /// 0 for queries, 1 for response.
-    response: bool, // 1 bit
+    pub response: bool, // 1 bit
     /// # Response Code
     ///
     /// Set by the server to indicate the status of the response, i.e. whether or not it was
     /// successful or failed, and in the latter case providing details about the cause of the
     /// failure.
-    rescode: ResultCode, // 4 bits
-    checking_disabled: bool, // 1 bit
-    authed_data: bool,       // 1 bit
+    pub rescode: ResultCode, // 4 bits
+    pub checking_disabled: bool, // 1 bit
+    pub authed_data: bool,       // 1 bit
     /// # Reserved
     ///
     /// Originally reserved for later use, but now used for DNSSEC queries.
-    z: bool, // 1 bit
+    pub z: bool, // 1 bit
     /// # Recursion Available
     ///
     /// Set by the server to indicate whether or not recursive queries are allowed.
-    recursion_available: bool, // 1 bit
+    pub recursion_available: bool, // 1 bit
     /// # Question Count
     ///
     /// The number of entries in the `Question Section`
-    questions: u16, // 16 bits
+    pub questions: u16, // 16 bits
     /// # Answer Count
     ///
     /// The number of entries in the `Answer Section`
-    answers: u16, // 16 bits
+    pub answers: u16, // 16 bits
     /// # Authority Count
     ///
     /// The number of entries in the `Authority Section`
-    authoritative_entries: u16, // 16 bits
+    pub authoritative_entries: u16, // 16 bits
     /// # Additional Count
     ///
     /// The number of entries in the `Additional Section`
-    resource_entries: u16, // 16 bits
+    pub resource_entries: u16, // 16 bits
 }
 
 impl DnsHeader {
@@ -420,7 +420,7 @@ pub struct DnsQuestion {
 }
 
 impl DnsQuestion {
-    fn new(name: String, qtype: QueryType) -> Self {
+    pub fn new(name: String, qtype: QueryType) -> Self {
         Self { name, qtype }
     }
 
