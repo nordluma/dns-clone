@@ -1,4 +1,4 @@
-use std::net::Ipv4Addr;
+use std::net::{Ipv4Addr, Ipv6Addr};
 
 /// Convenience type for a `Result` which return a generic `Error`
 pub type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
@@ -468,6 +468,27 @@ pub enum DnsRecord {
         addr: Ipv4Addr,
         ttl: u32,
     }, // 1
+    NS {
+        domain: String,
+        host: String,
+        ttl: u32,
+    }, // 2
+    CNAME {
+        domain: String,
+        host: String,
+        ttl: u32,
+    }, // 5
+    MX {
+        domain: String,
+        priority: u16,
+        host: String,
+        ttl: u32,
+    }, // 15
+    AAAA {
+        domain: String,
+        addr: Ipv6Addr,
+        ttl: u32,
+    }, // 28
 }
 
 impl DnsRecord {
@@ -482,16 +503,6 @@ impl DnsRecord {
         let data_len = buffer.read_u16()?;
 
         let record = match qtype {
-            QueryType::Unknown(_) => {
-                buffer.step(data_len as usize)?;
-
-                Self::Unknown {
-                    domain,
-                    qtype: qtype_num,
-                    data_len,
-                    ttl,
-                }
-            }
             QueryType::A => {
                 let raw_addr = buffer.read_u32()?;
                 let addr = Ipv4Addr::new(
@@ -502,6 +513,66 @@ impl DnsRecord {
                 );
 
                 Self::A { domain, addr, ttl }
+            }
+            QueryType::NS => {
+                let mut ns = String::new();
+                buffer.read_qname(&mut ns)?;
+
+                Self::NS {
+                    domain,
+                    host: ns,
+                    ttl,
+                }
+            }
+            QueryType::CNAME => {
+                let mut cname = String::new();
+                buffer.read_qname(&mut cname)?;
+
+                Self::CNAME {
+                    domain,
+                    host: cname,
+                    ttl,
+                }
+            }
+            QueryType::MX => {
+                let priority = buffer.read_u16()?;
+                let mut mx = String::new();
+                buffer.read_qname(&mut mx)?;
+
+                Self::MX {
+                    domain,
+                    priority,
+                    host: mx,
+                    ttl,
+                }
+            }
+            QueryType::AAAA => {
+                let raw_addr1 = buffer.read_u32()?;
+                let raw_addr2 = buffer.read_u32()?;
+                let raw_addr3 = buffer.read_u32()?;
+                let raw_addr4 = buffer.read_u32()?;
+                let addr = Ipv6Addr::new(
+                    ((raw_addr1 >> 16) & 0xFFFF) as u16,
+                    ((raw_addr1 >> 0) & 0xFFFF) as u16,
+                    ((raw_addr2 >> 16) & 0xFFFF) as u16,
+                    ((raw_addr2 >> 0) & 0xFFFF) as u16,
+                    ((raw_addr3 >> 16) & 0xFFFF) as u16,
+                    ((raw_addr3 >> 0) & 0xFFFF) as u16,
+                    ((raw_addr4 >> 16) & 0xFFFF) as u16,
+                    ((raw_addr4 >> 0) & 0xFFFF) as u16,
+                );
+
+                Self::AAAA { domain, addr, ttl }
+            }
+            QueryType::Unknown(_) => {
+                buffer.step(data_len as usize)?;
+
+                Self::Unknown {
+                    domain,
+                    qtype: qtype_num,
+                    data_len,
+                    ttl,
+                }
             }
         };
 
