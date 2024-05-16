@@ -45,6 +45,19 @@ impl BytePacketBuffer {
         Ok(())
     }
 
+    fn set(&mut self, pos: usize, val: u8) -> Result<()> {
+        self.buf[pos] = val;
+
+        Ok(())
+    }
+
+    fn set_u16(&mut self, pos: usize, val: u16) -> Result<()> {
+        self.set(pos, (val >> 8) as u8)?;
+        self.set(pos + 1, (val & 0xFF) as u8)?;
+
+        Ok(())
+    }
+
     /// Read a single byte and move the position one step forward.
     fn read(&mut self) -> Result<u8> {
         if self.pos > Self::BUF_LEN {
