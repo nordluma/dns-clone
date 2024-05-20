@@ -17,7 +17,7 @@ fn main() -> Result<()> {
         println!("{:#?}", rec);
     }
 
-    for rec in res_packet.authoritives {
+    for rec in res_packet.authorities {
         println!("{:#?}", rec);
     }
 

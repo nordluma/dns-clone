@@ -711,7 +711,7 @@ pub struct DnsPacket {
     /// # Authority Section
     ///
     /// A list of name servers (NS records), used for resolving queries recursively.
-    pub authoritives: Vec<DnsRecord>,
+    pub authorities: Vec<DnsRecord>,
     /// # Additional Section
     ///
     /// Additional records, that might be useful. For instance, the corresponding A records for NS
@@ -731,7 +731,7 @@ impl DnsPacket {
             header: DnsHeader::new(),
             questions: Vec::new(),
             answers: Vec::new(),
-            authoritives: Vec::new(),
+            authorities: Vec::new(),
             resources: Vec::new(),
         }
     }
@@ -753,7 +753,7 @@ impl DnsPacket {
 
         for _ in 0..result.header.authoritative_entries {
             let rec = DnsRecord::read(buffer)?;
-            result.authoritives.push(rec);
+            result.authorities.push(rec);
         }
 
         for _ in 0..result.header.resource_entries {
@@ -767,7 +767,7 @@ impl DnsPacket {
     pub fn write(&mut self, buffer: &mut BytePacketBuffer) -> Result<()> {
         self.header.questions = self.questions.len() as u16;
         self.header.answers = self.answers.len() as u16;
-        self.header.authoritative_entries = self.authoritives.len() as u16;
+        self.header.authoritative_entries = self.authorities.len() as u16;
         self.header.resource_entries = self.resources.len() as u16;
 
         self.header.write(buffer)?;
@@ -780,7 +780,7 @@ impl DnsPacket {
             rec.write(buffer)?;
         }
 
-        for rec in &self.authoritives {
+        for rec in &self.authorities {
             rec.write(buffer)?;
         }
 
