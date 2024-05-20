@@ -3,11 +3,33 @@ use std::net::UdpSocket;
 use dns_clone::packet::{BytePacketBuffer, DnsPacket, DnsQuestion, QueryType, Result};
 
 fn main() -> Result<()> {
-    // query for "google.com"
-    let qname = "google.com";
-    let qtype = QueryType::A;
+    let qname = "yahoo.com";
+    let qtype = QueryType::MX;
+    let res_packet = lookup(qname, qtype)?;
 
-    // use googles public DNS server
+    println!("{:#?}", res_packet);
+
+    for q in res_packet.questions {
+        println!("{:#?}", q);
+    }
+
+    for rec in res_packet.answers {
+        println!("{:#?}", rec);
+    }
+
+    for rec in res_packet.authoritives {
+        println!("{:#?}", rec);
+    }
+
+    for rec in res_packet.resources {
+        println!("{:#?}", rec);
+    }
+
+    Ok(())
+}
+
+fn lookup(qname: &str, qtype: QueryType) -> Result<DnsPacket> {
+    // forward requests to googles public DNS server
     let server = ("8.8.8.8", 53);
     let socket = UdpSocket::bind(("0.0.0.0", 8686))?;
 
@@ -36,24 +58,5 @@ fn main() -> Result<()> {
 
     // `DnsPacket::from_buffer` is used to parse the packet after which we can
     // print the response
-    let res_packet = DnsPacket::from_buffer(&mut res_buffer)?;
-    println!("{:#?}", res_packet);
-
-    for q in res_packet.questions {
-        println!("{:#?}", q);
-    }
-
-    for rec in res_packet.answers {
-        println!("{:#?}", rec);
-    }
-
-    for rec in res_packet.authoritives {
-        println!("{:#?}", rec);
-    }
-
-    for rec in res_packet.resources {
-        println!("{:#?}", rec);
-    }
-
-    Ok(())
+    DnsPacket::from_buffer(&mut res_buffer)
 }
