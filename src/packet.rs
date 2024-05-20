@@ -440,8 +440,8 @@ impl QueryType {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct DnsQuestion {
-    name: String,
-    qtype: QueryType,
+    pub name: String,
+    pub qtype: QueryType,
 }
 
 impl DnsQuestion {
